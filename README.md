@@ -1,63 +1,203 @@
+# 🖥️ LandMark: Facial Keypoint Detection
+### CNN-based Facial Landmark Detection using TensorFlow & Keras
 
-# LandMark Detection – Facial Landmark Detection 🖥️✨
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00?style=flat-square&logo=tensorflow&logoColor=white)
+![Keras](https://img.shields.io/badge/Keras-Deep%20Learning-D00000?style=flat-square&logo=keras&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Complete-22C55E?style=flat-square)
 
-## 📌 Overview
-
-**LandMark** is a Python-based facial landmark detection project focused on identifying key facial points in static images using OpenCV and Dlib. The project visualizes facial landmarks, making it simple to understand facial feature mapping with clean outputs and minimal setup.
-
----
-
-## 🚀 Features
-
-* 📌 Detects **68 facial landmarks** from images.
-* ✅ Uses **OpenCV** and **Dlib** for fast, reliable detection.
-* ✅ **Preprocessing** included for consistent image inputs.
-* ✅ **Output images** with overlaid facial keypoints.
-* ✅ Lightweight code with **easy-to-follow structure**.
+> A CNN-based facial keypoint detection pipeline that identifies 15 facial landmarks (30 coordinates) from grayscale images using the Kaggle Facial Keypoints Detection dataset — featuring two model architectures, data augmentation, training callbacks, and full prediction visualization.
 
 ---
 
-## 🛠️ Tech Stack
+## 📋 Table of Contents
 
-* **Language:** Python 3.13
-* **Libraries:** OpenCV, Dlib, Imutils, NumPy, Matplotlib
+- [Overview](#-overview)
+- [Features](#-features)
+- [Dataset](#-dataset)
+- [Model Architectures](#-model-architectures)
+- [Project Structure](#-project-structure)
+- [Setup & Usage](#-setup--usage)
+- [Sample Output](#-sample-output)
+- [Author](#-author)
 
 ---
 
-## 📝 Setup Instructions
+## 🔭 Overview
 
-### 1. Install Dependencies
+Facial landmark detection is a foundational task in computer vision with applications in face recognition, emotion analysis, augmented reality, and driver monitoring systems. This project builds a complete end-to-end pipeline to detect **15 facial keypoints** (eyes, eyebrows, nose tip, and mouth corners) from 96×96 grayscale images.
 
-```bash
-pip install -r requirements.txt
+Two CNN architectures are implemented and compared:
+- A **Basic CNN** with 5 convolutional blocks and fully connected layers
+- An **Advanced CNN** with residual (skip) connections and Global Average Pooling
+
+All experiments use a fixed random seed of 42 for reproducibility.
+
+---
+
+## ✨ Features
+
+- 📌 Detects **15 facial keypoints** (30 x,y coordinates) from static images
+- 🧠 Two model architectures — **Basic CNN** and **Residual CNN**
+- 📊 Full **EDA** — missing value analysis, keypoint coordinate distribution
+- 🔁 **Data augmentation** via Keras `ImageDataGenerator`
+- ⚙️ Training callbacks — `EarlyStopping`, `ReduceLROnPlateau`, `ModelCheckpoint`
+- 📈 Training/validation **loss and MAE curves**
+- 🟢🔴 Side-by-side **ground truth vs prediction** visualization
+- 📐 **Pixel-distance accuracy** metric (% keypoints within N-pixel threshold)
+- 💾 Automatic model saving as `.h5`
+
+---
+
+## 📦 Dataset
+
+- **Source:** [Kaggle — Facial Keypoints Detection](https://www.kaggle.com/c/facial-keypoints-detection)
+- **Images:** 96×96 grayscale images stored as pixel strings in CSV
+- **Labels:** 15 facial keypoints = 30 coordinates (x,y pairs)
+- **Subset used:** 1,000 samples (randomly selected, seed=42)
+- **Missing values:** Handled by filling with column mean
+- **Normalization:** Images scaled to [0,1], keypoints scaled to [0,1] (divided by 96)
+
+**Keypoints detected:**
+
+| Region | Keypoints |
+|---|---|
+| Eyes | Left/right eye center, inner & outer corners (6 points) |
+| Eyebrows | Left/right inner & outer ends (4 points) |
+| Nose | Nose tip (1 point) |
+| Mouth | Left/right corners, top & bottom lip center (4 points) |
+
+---
+
+## 🧠 Model Architectures
+
+### Basic CNN
+
+```
+Input (96×96×1)
+→ Conv2D(32) → BN → MaxPool → Dropout(0.2)
+→ Conv2D(64) → BN → MaxPool → Dropout(0.2)
+→ Conv2D(128) → BN → MaxPool → Dropout(0.3)
+→ Conv2D(256) → BN → MaxPool → Dropout(0.3)
+→ Conv2D(512) → BN → MaxPool → Dropout(0.4)
+→ Flatten → Dense(1024) → BN → Dropout(0.5)
+→ Dense(512) → BN → Dropout(0.5)
+→ Dense(30) [linear output]
 ```
 
-Or using conda:
+### Advanced Residual CNN
 
-```bash
-conda create -n landmark-env python=3.10
-conda activate landmark-env
-pip install -r requirements.txt
+```
+Input (96×96×1)
+→ Conv2D(32, 7×7) → BN → MaxPool
+→ Residual Block (64 filters)  → MaxPool → Dropout(0.25)
+→ Residual Block (128 filters) → MaxPool → Dropout(0.25)
+→ Residual Block (256 filters) → MaxPool → Dropout(0.30)
+→ GlobalAveragePooling2D
+→ Dense(512) → BN → Dropout(0.5)
+→ Dense(256) → BN → Dropout(0.5)
+→ Dense(30) [linear output]
 ```
 
-### 2. Clone the Repository
+**Training configuration:**
+
+| Setting | Value |
+|---|---|
+| Optimizer | Adam (lr=0.001) |
+| Loss | Mean Squared Error (MSE) |
+| Metric | Mean Absolute Error (MAE) |
+| Epochs | 80 (with early stopping) |
+| Batch size | 32 |
+| Early stopping patience | 20 |
+| LR reduction patience | 8, factor 0.2 |
+
+---
+
+## 📁 Project Structure
+
+```
+landmark-detection/
+│
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── LICENSE.md
+│
+├── LandMarkDFacePoints.py     # Full pipeline — data loading, models, training, evaluation
+│
+└── Image/                     # Sample output images with overlaid keypoints
+```
+
+---
+
+## ⚙️ Setup & Usage
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/landmark-detection.git
+git clone https://github.com/prabhu-313/landmark-detection.git
 cd landmark-detection
 ```
 
-### 3. Run the Code
+### 2. Install dependencies
 
 ```bash
-python landmark_detection.py
+pip install -r requirements.txt
 ```
+
+### 3. Download the dataset
+
+Download `training.csv` and `test.csv` from [Kaggle](https://www.kaggle.com/c/facial-keypoints-detection/data) and place them in the root directory:
+
+```
+landmark-detection/
+├── training.csv      ← place here
+├── test.csv          ← place here
+└── LandMarkDFacePoints.py
+```
+
+> **Note:** If the dataset files are not found, the script automatically generates synthetic sample data for demonstration so you can still run and explore the full pipeline.
+
+### 4. Run the pipeline
+
+```bash
+python LandMarkDFacePoints.py
+```
+
+This runs all 12 steps automatically: data loading → preprocessing → EDA → model creation → training → evaluation → visualization → model saving.
+
+### 5. Switch model architecture (optional)
+
+Inside `LandMarkDFacePoints.py`, in the `main()` function, swap the model by commenting/uncommenting:
+
+```python
+# Basic CNN (default)
+model = create_basic_cnn_model(input_shape, num_keypoints)
+
+# Advanced Residual CNN
+# model = create_advanced_cnn_model(input_shape, num_keypoints)
+```
+
+---
+
 ## 🖼️ Sample Output
 
-Find sample processed images with detected landmarks inside the [`images/`](./Image/) folder:
+Sample processed images with detected keypoints are in the [`Image/`](./Image) folder.
 
+- 🟢 **Green dots** = Ground truth keypoints
+- 🔴 **Red crosses** = Model predictions
 
-## 📜 License
+---
+
+## 👤 Author
+
+**Prabhupada Samantaray**
+B.Tech CSE, KIIT University
+[GitHub](https://github.com/prabhu-313) · [LinkedIn](https://www.linkedin.com/in/prabhupada-samantaray-13apr2002/) · [Email](mailto:psray313@gmail.com)
+
+---
+
+## 📄 License
 
 This project is licensed under the [MIT License](./LICENSE.md).
-
