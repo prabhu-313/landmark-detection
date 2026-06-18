@@ -2,6 +2,7 @@
 # Dependencies
 
 # CRITICAL: numpy<2 required — Dlib 19.x bindings are incompatible with NumPy 2.x
+numpy<2
 
 # Core vision and detection
 opencv-python>=4.8.0
