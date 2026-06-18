@@ -178,7 +178,7 @@ landmark-detection/
 │   └── LandMarkDFacePoints.py       # Local real-time webcam app
 │
 ├── output_samples/
-│   └── README.md                    # Instructions for adding sample outputs
+│   └── README.md                    # Sample outputs
 │
 └── docs/
     └── landmark_map.md              # Detailed 68-point annotation reference
